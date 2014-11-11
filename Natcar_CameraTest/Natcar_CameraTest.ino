@@ -1,3 +1,6 @@
+//#include "Natcar_PID.ino"
+
+// Camera Control Variables. 
 #define CLK 19
 #define AO 23
 #define SI 20
@@ -81,7 +84,7 @@ void displayView(int startIndex, int endIndex, int midIndex)
     {
       disp[i] = ' ';
     }
-    Serial.printf("%c", disp[i]);
+    printf("%c", disp[i]);
   }
 }
 
@@ -96,10 +99,8 @@ void loop()
   for ( i = 1; i < 128; i++ )
   {
     digitalWrite(CLK, HIGH);
-//    delay(100);
     pixels[i] = analogRead(AO);
     digitalWrite(CLK, LOW);
-//    delay(100);
   }
   calcSecant(pixels);
 
@@ -107,9 +108,11 @@ void loop()
   int startLine = indexOfGreatest(slopes);
   int endLine = indexOfLeast(slopes);
   int midLine = (startLine + endLine)/2;
-//  Serial.printf("%d      %d       %d", startLine, midLine, endLine);
-  displayView(startLine, endLine, midLine);
+  //displayView(startLine, endLine, midLine);
   
-  Serial.printf("\n\n");
+  PID(midLine);
+  printValues();
+  
+  printf("\n\n");
   //delay(1000);
 }
