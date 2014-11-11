@@ -31,16 +31,16 @@ void loop()
   {
     digitalWrite(CLK, HIGH);
 //    delay(100);
-    int disp;
+    char disp;
     if (analogRead(AO)/SCALINGFACTOR <= THRESHOLD)
     {
-      disp = 0;
+      disp = ' ';
     }
     else
     {
-      disp = 1;
+      disp = '*';
     }
-    Serial.printf("%d", disp);
+    Serial.printf("%c", disp);
     digitalWrite(CLK, LOW);
 //    delay(100);
   }
