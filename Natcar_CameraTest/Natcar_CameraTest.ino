@@ -4,7 +4,7 @@
 #define SCALINGFACTOR 20
 #define THRESHOLD 4
 
-int pixels[128];
+int pixels[128]; // array of pixels. 
 
 void setup()
 {
@@ -30,7 +30,6 @@ void loop()
   for ( i = 1; i < 128; i++ )
   {
     digitalWrite(CLK, HIGH);
-//    delay(100);
     char disp;
     if (analogRead(AO)/SCALINGFACTOR <= THRESHOLD)
     {
@@ -42,9 +41,7 @@ void loop()
     }
     Serial.printf("%c", disp);
     digitalWrite(CLK, LOW);
-//    delay(100);
   }
   
   Serial.printf("\n\n");
-  //delay(1000);
 }
