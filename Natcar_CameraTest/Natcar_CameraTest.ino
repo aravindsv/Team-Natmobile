@@ -1,15 +1,21 @@
 //#include "Natcar_PID.ino"
+#include <Servo.h>
+
 
 // Camera Control Variables. 
 #define CLK 19
 #define AO 23
 #define SI 20
+#define SERVO_PIN 14
+
+#define SERVO_CENTER 125
 #define SCALINGFACTOR 20
 #define THRESHOLD 4
 #define SLOPELENGTH 10 // this can be fine tuned in the future. 
 
 int pixels[128];
 int slopes[128];
+Servo ourServo;
 
 void setup()
 {
@@ -17,9 +23,11 @@ void setup()
   pinMode(CLK, OUTPUT);
   pinMode(AO, INPUT);
   
+  ourServo.attach(SERVO_PIN);
+
   digitalWrite(SI, LOW);
   digitalWrite(CLK, LOW);
-  
+
   Serial.begin(9600);
 }
 
@@ -84,17 +92,23 @@ void displayView(int startIndex, int endIndex, int midIndex)
     {
       disp[i] = ' ';
     }
-    printf("%c", disp[i]);
+    Serial.printf("%c", disp[i]);
   }
+}
+
+void setServo(int error)
+{
+  ourServo.write(SERVO_CENTER-error);
 }
 
 void loop()
 {
+  //Serial.println(millis());
   digitalWrite(SI, HIGH);
   digitalWrite(CLK, HIGH);
   digitalWrite(SI, LOW);
   digitalWrite(CLK, LOW);
-  
+
   int i; 
   for ( i = 1; i < 128; i++ )
   {
@@ -109,10 +123,12 @@ void loop()
   int endLine = indexOfLeast(slopes);
   int midLine = (startLine + endLine)/2;
   //displayView(startLine, endLine, midLine);
-  
-  PID(midLine);
+  //Serial.println(millis());
+  setServo(PID(midLine));
+  //Serial.println(millis());
   printValues();
-  
-  printf("\n\n");
+
+  Serial.printf("\n\n");
   //delay(1000);
 }
+

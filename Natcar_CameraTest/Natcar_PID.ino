@@ -2,9 +2,9 @@ const double k_p = 1;
 const double k_d = 0.5;
 const int setpoint = 64;
 
-const int dt = 10;
+const double dt = 1.5;
 double prop, deriv;
-double error, prev_Error;
+double error, prev_Error = 0;
 
 // finds proportional. 
 void P_controller() {
@@ -16,19 +16,32 @@ void D_controller() {
   deriv = k_d * (error - prev_Error) / dt;
 }
 
-void PID(int midpoint) {
+int PID(int midpoint) {
   //Determine change in time; TODO look into this. currently const dt. 
   error = setpoint - midpoint; 
   P_controller(); //Calculate error;
   //	TODO?: Calculate integral error;
   D_controller(); //	Calculate derivative error;
   //	TODO?: Apply gains to respective errors;
-  error = prop + deriv; //	Sum all errors;
   prev_Error = error;   //	Save total error for next loop;
-  delay(dt);
+  error = prop + deriv; //	Sum all errors;
+  return error;
+  //delay(dt);
 }
 
 void printValues()
 {
-  printf("error: %d, d_err: %d\n", error, deriv);
+  Serial.printf("error: %f, d_err: %f\n", error, deriv);
+  if (error > 0)
+  {
+    Serial.println("Turn Left");
+  }
+  else if (error < 0)
+  {
+    Serial.println("Turn Right");
+  }
+  else
+  {
+    Serial.println("Stay Straight");
+  }
 }
