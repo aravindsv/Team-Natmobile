@@ -2,14 +2,17 @@
 #define AO 23
 #define SI 20
 #define SCALINGFACTOR 20
-#define THRESHOLD 4
-#define SLOPELENGTH 10 // this can be fine tuned in the future. 
+#define THRESHOLD 50 // TODO: change this value accordingly. 
 
-int pixels[128];
-int slopes[128];
+#define MAXPIXELS 128
+#define SLOPELENGTH 4 // this can be fine tuned in the future.
+#define SKIPVAL 2 // this is the number of values we skip. 
+
+int pixels[MAXPIXELS / SKIPVAL];
+int slopes[MAXPIXELS / SKIPVAL - SLOPELENGTH]; 
 
 void setup()
-{
+{ 
   pinMode(SI, OUTPUT);
   pinMode(CLK, OUTPUT);
   pinMode(AO, INPUT);
@@ -22,7 +25,7 @@ void setup()
 
 void calcSecant(int pixels[])
 {
-  for (int i = 0; i < 128-SLOPELENGTH; i++)
+  for (int i = 0; i < MAXPIXELS / SKIPVAL - SLOPELENGTH; i++)
   {
     slopes[i] = (pixels[i+SLOPELENGTH] - pixels[i]);
   }
@@ -34,36 +37,55 @@ void calcSecant(int pixels[])
 // there should be multiple values of near the edge with similar slopes
 // and we should choose the value of the slope just before it changes from 
 // high slope to low slope. 
+
+// edite 11/22: this is untested, but these changes might be there. 
+// we still should have some issues concerning finding the line at the edges though. just in case. 
 int indexOfGreatest(int array[])
 {
   int greatest = 1;
-  for (int i = 1; i < 128-SLOPELENGTH; i++)
+  for (int i = 1; i < MAXPIXELS / SKIPVAL - SLOPELENGTH - 1; i++)
   {
     if (array[i] > array[greatest])
     {
       greatest = i;
     }
   }
-  return greatest;
+  
+  for (int i = greatest; i < MAXPIXELS / SKIPVAL - SLOPELENGTH - 1; i++)
+  {
+    if ( slopes[i+1] - slopes[i] < THRESHOLD )
+    {
+      return SKIPVAL * greatest - SKIPVAL / 2;
+    }
+  }
+  return -1; // this means that. the maximum value is never found and should never really come here. maybe it means that the line is at the edge of vision?
 }
 
 int indexOfLeast(int array[])
 {
-  int least = 1;
-  for (int i = 1; i < 128-SLOPELENGTH; i++)
+  int least = 0;
+  for (int i = 0; i < MAXPIXELS / SKIPVAL - SLOPELENGTH - 1; i++)
   {
     if (array[i] < array[least])
     {
       least = i;
     }
   }
-  return least;
+  
+  for (int i = least; i >= 0; i--)
+  {
+    if ( slopes[i+1] - slopes[i] < THRESHOLD )
+    {
+      return SKIPVAL * least - SKIPVAL / 2;
+    }
+  }
+  return -1; // this means that. the minimum value is never found and should never really come here. maybe it means that the line is at the edge of vision?
 }
 
 void displayView(int startIndex, int endIndex, int midIndex)
 {
-  char disp[128];
-  for (int i = 0; i < 128; i++)
+  char disp[MAXPIXELS];
+  for (int i = 0; i < MAXPIXELS; i++)
   {
     if (i == startIndex || i == endIndex)
     {
@@ -81,7 +103,7 @@ void displayView(int startIndex, int endIndex, int midIndex)
     {
       disp[i] = ' ';
     }
-    Serial.printf("%c", disp[i]);
+    Serial.print(disp[i]);
   }
 }
 
@@ -93,7 +115,7 @@ void loop()
   digitalWrite(CLK, LOW);
   
   int i; 
-  for ( i = 1; i < 128; i++ )
+  for ( i = 0; i < MAXPIXELS/ SKIPVAL; i += SKIPVAL )
   {
     digitalWrite(CLK, HIGH);
 //    delay(100);
@@ -110,6 +132,6 @@ void loop()
 //  Serial.printf("%d      %d       %d", startLine, midLine, endLine);
   displayView(startLine, endLine, midLine);
   
-  Serial.printf("\n\n");
+  Serial.print("\n\n");
   //delay(1000);
 }
