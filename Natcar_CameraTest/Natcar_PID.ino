@@ -1,3 +1,5 @@
+const int THRESH = 15;
+
 const double k_p = 1;
 const double k_d = 0.5;
 const int setpoint = 64;
@@ -32,11 +34,11 @@ int PID(int midpoint) {
 void printValues()
 {
   Serial.printf("error: %f, d_err: %f\n", error, deriv);
-  if (error > 0)
+  if (error > THRESH)
   {
     Serial.println("Turn Left");
   }
-  else if (error < 0)
+  else if (error < -THRESH)
   {
     Serial.println("Turn Right");
   }
