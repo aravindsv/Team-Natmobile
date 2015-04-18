@@ -15,7 +15,8 @@ void P_controller() {
 }
 
 void D_controller() {
-  deriv = k_d * (error - prev_Error) / dt;
+  deriv = 0;
+  //deriv = k_d * (error - prev_Error) / dt;
 }
 
 int PID(int midpoint) {

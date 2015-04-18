@@ -11,11 +11,15 @@
 #define SI 15        //3 for Perfboard, 15 for PCB
 #define SERVO_PIN 13 //8 for Perfboard, 13 for PCB
 
-#define SERVO_CENTER 125
+#define SERVO_CENTER 85 // actually 80, but accounts for cam bias
+#define SERVO_RANGE 31
 #define SCALINGFACTOR 20
 #define THRESHOLD 4
-#define SLOPELENGTH 10 // this can be fine tuned in the future. 
+#define SLOPELENGTH 3 // this can be fine tuned in the future. 
 #define SKIPVAL 1
+
+#define EDGE_IGNORE 5
+#define ERROR_SIZE 10
 
 int mini = 1000;
 int maxi = 0;
@@ -53,10 +57,10 @@ void calcSecant(int pixels[])
 // high slope to low slope. 
 int indexOfGreatest(int array[])
 {
-  int greatest = 1;
-  for (int i = 1; i < 128-SLOPELENGTH; i++)
+  int greatest = EDGE_IGNORE;
+  for (int i = EDGE_IGNORE; i < 128-SLOPELENGTH - EDGE_IGNORE; i++)
   {
-    if (array[i] > array[greatest])
+    if (slopes[i] > slopes[greatest])
     {
       greatest = i;
     }
@@ -66,10 +70,10 @@ int indexOfGreatest(int array[])
 
 int indexOfLeast(int array[])
 {
-  int least = 1;
-  for (int i = 1; i < 128-SLOPELENGTH; i++)
+  int least = EDGE_IGNORE;
+  for (int i = 128-SLOPELENGTH-EDGE_IGNORE-1; i >= EDGE_IGNORE; i--)
   {
-    if (array[i] < array[least])
+    if (slopes[i] < slopes[least])
     {
       least = i;
     }
@@ -80,6 +84,7 @@ int indexOfLeast(int array[])
 void displayView(int startIndex, int endIndex, int midIndex)
 {
   char disp[128];
+  Serial.print("[");
   for (int i = 0; i < 128; i++)
   {
     if (i == startIndex || i == endIndex)
@@ -100,6 +105,7 @@ void displayView(int startIndex, int endIndex, int midIndex)
     }
     Serial.printf("%c", disp[i]);
   }
+  Serial.print("]");
 }
 
 void setServo(int error)
@@ -128,14 +134,14 @@ void loop()
 //    if (pixels[i] < mini)
 //      mini = pixels[i];
 //  }
-  for (int i = 2; i < 128; i++)
-  {
-    Serial.print(map(pixels[i], 0, 128, 0, 9));
-    Serial.print("");
-    //Serial.printf("%d ", pixels[i] / 20 );
-  }
-  // Serial.printf("%d\t%d\n", mini, maxi );
-  Serial.println("");
+//  for (int i = 1; i < 128; i++)
+//  {
+//    Serial.print(map(pixels[i], 0, 128, 0, 9));
+//    Serial.print("");
+//    //Serial.printf("%d ", pixels[i] / 20 );
+//  }
+//  // Serial.printf("%d\t%d\n", mini, maxi );
+//  Serial.println("");
   
 //  for (i = 0; i < 128; i++)
 //  {
@@ -145,7 +151,7 @@ void loop()
 //  {
 //    delay(1000);
 //  }
-  //calcSecant(pixels);
+  calcSecant(pixels);
 
   Serial.println();
   int startLine = indexOfGreatest(slopes);
@@ -154,10 +160,22 @@ void loop()
 //  Serial.print(startLine);
 //  Serial.print("    ");
 //  Serial.println(endLine);
-//  displayView(startLine, endLine, midLine);
-  Serial.println();
+  
+  //Serial.println();
   //Serial.println(millis());
-  // setServo(PID(midLine));
+  if ( endLine > startLine && endLine - startLine < ERROR_SIZE )
+  {
+    displayView(startLine, endLine, midLine);
+    int err = PID(midLine);
+    int angleDiff = map(err, -50, 50, -SERVO_RANGE, SERVO_RANGE);
+    Serial.printf( " err: %d, ang: %d", err, angleDiff);
+    ourServo.write(SERVO_CENTER - angleDiff);
+    Serial.println();
+  }
+  else
+  {
+    Serial.println();
+  }
   //Serial.println(millis());
 //  printValues();
 
