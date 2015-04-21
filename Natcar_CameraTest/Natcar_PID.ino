@@ -1,8 +1,8 @@
 const int THRESH = 15;
 
-const double k_p = 5;
-const double k_d = 0.5;
-const double k_i = 0.001;
+const double k_p = 6.5;
+const double k_d = 1;
+const double k_i = 0.002;
 const int setpoint = 64;
 
 const double dt = 1.5;
