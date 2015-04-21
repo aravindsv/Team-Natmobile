@@ -6,25 +6,31 @@
 #define motor2 4     //4 for PCB
 
 // Camera Control Variables. 
-#define CLK 16       //2 for Perfboard, 16 for PCB
-#define AO 14        //18 for Perfboard, 14 for PCB
-#define SI 15        //3 for Perfboard, 15 for PCB
-#define SERVO_PIN 13 //8 for Perfboard, 13 for PCB
+#define CLK 16       //16 for Perfboard, 16 for PCB
+#define AO 18        //18 for Perfboard, 14 for PCB
+#define SI 17        //17 for Perfboard, 15 for PCB
+#define SERVO_PIN 10 //10 for Perfboard, 13 for PCB
 
-#define SERVO_CENTER 85 // actually 80, but accounts for cam bias
-#define SERVO_RANGE 31
+#define SERVO_CENTER 120 // actually 90, but accounts for cam bias
+#define SERVO_RANGE 15
 #define SCALINGFACTOR 20
 #define THRESHOLD 4
-#define SLOPELENGTH 3 // this can be fine tuned in the future. 
+#define SLOPELENGTH 3 // this can be fine tuned in t he future. 
 #define SKIPVAL 1
 
-#define EDGE_IGNORE 5
-#define ERROR_SIZE 10
+#define EDGE_IGNORE 10
+#define ERROR_SIZE 15
+#define MOTOR_POWER 35
 
 int mini = 1000;
 int maxi = 0;
 int pixels[128 / SKIPVAL];
 int slopes[128 / SKIPVAL];
+
+const int NUM_SAMPLES = 10;
+int PREV_SAMPLES[NUM_SAMPLES];
+int curs = 0;
+
 Servo ourServo;
 
 void setup()
@@ -39,6 +45,8 @@ void setup()
   digitalWrite(CLK, LOW);
 
   Serial.begin(9600);
+  
+  delay(1000);
 }
 
 void calcSecant(int pixels[])
@@ -70,7 +78,7 @@ int indexOfGreatest(int array[])
 
 int indexOfLeast(int array[])
 {
-  int least = EDGE_IGNORE;
+  int least = 128-SLOPELENGTH-EDGE_IGNORE-1;
   for (int i = 128-SLOPELENGTH-EDGE_IGNORE-1; i >= EDGE_IGNORE; i--)
   {
     if (slopes[i] < slopes[least])
@@ -121,7 +129,7 @@ void loop()
   digitalWrite(SI, LOW);
   digitalWrite(CLK, LOW);
 
-  for (int i = 1; i < 128 / SKIPVAL; i++ )
+  for (int i = 128 / SKIPVAL - 1; i >= 1 ; i-- )
   {
     digitalWrite(CLK, HIGH);
     pixels[i] = analogRead(AO);
@@ -163,17 +171,35 @@ void loop()
   
   //Serial.println();
   //Serial.println(millis());
+  int e;
+  int err;
+  int sp;
+  
   if ( endLine > startLine && endLine - startLine < ERROR_SIZE )
   {
     displayView(startLine, endLine, midLine);
-    int err = PID(midLine);
-    int angleDiff = map(err, -50, 50, -SERVO_RANGE, SERVO_RANGE);
-    Serial.printf( " err: %d, ang: %d", err, angleDiff);
+    e = rawError(midLine);
+    err = PID(midLine);
+    sp = speedVal(e);
+    analogWrite(motor1, sp);
+    int angleDiff = map(err, -40, 40, -SERVO_RANGE, SERVO_RANGE);
+    Serial.printf( " err: %d, ang: %d, sp: %d", err, angleDiff, sp);
+    PREV_SAMPLES[curs] = angleDiff;
+    curs = (curs + 1) % NUM_SAMPLES;
     ourServo.write(SERVO_CENTER - angleDiff);
     Serial.println();
   }
   else
   {
+    //err = guessError();
+    int angleDiffSum = 0;
+    for ( int i = 0; i < NUM_SAMPLES; i++ )
+    {
+      angleDiffSum += PREV_SAMPLES[i];
+    }
+    int angleDiff = angleDiffSum / NUM_SAMPLES;
+    ourServo.write(SERVO_CENTER - angleDiff);
+    Serial.printf( "guessed error: %d", angleDiff);
     Serial.println();
   }
   //Serial.println(millis());
