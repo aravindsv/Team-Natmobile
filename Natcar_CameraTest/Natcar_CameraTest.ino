@@ -6,19 +6,19 @@
 #define motor2 4     //4 for PCB
 
 // Camera Control Variables. 
-#define CLK 16       //16 for Perfboard, 16 for PCB
-#define AO 18        //18 for Perfboard, 14 for PCB
-#define SI 17        //17 for Perfboard, 15 for PCB
+#define CLK 20       //16 for Perfboard, 16 for PCB
+#define AO 22        //18 for Perfboard, 14 for PCB
+#define SI 21        //17 for Perfboard, 15 for PCB
 #define SERVO_PIN 10 //10 for Perfboard, 13 for PCB
 
-#define SERVO_CENTER 120 // actually 90, but accounts for cam bias
-#define SERVO_RANGE 15
+#define SERVO_CENTER 66 // actually 90, but accounts for cam bias
+#define SERVO_RANGE 12
 #define SCALINGFACTOR 20
 #define THRESHOLD 4
 #define SLOPELENGTH 3 // this can be fine tuned in t he future. 
 #define SKIPVAL 1
 
-#define EDGE_IGNORE 10
+#define EDGE_IGNORE 25
 #define ERROR_SIZE 15
 #define MOTOR_POWER 35
 
@@ -35,14 +35,17 @@ Servo ourServo;
 
 void setup()
 {
+  pinMode(motor1, OUTPUT);
+  pinMode(motor2, OUTPUT);
   pinMode(SI, OUTPUT);
   pinMode(CLK, OUTPUT);
   pinMode(AO, INPUT);
   
   ourServo.attach(SERVO_PIN);
-
+  ourServo.write(SERVO_CENTER);
   digitalWrite(SI, LOW);
   digitalWrite(CLK, LOW);
+  digitalWrite(motor2, HIGH);
 
   Serial.begin(9600);
   
@@ -142,12 +145,12 @@ void loop()
 //    if (pixels[i] < mini)
 //      mini = pixels[i];
 //  }
-//  for (int i = 1; i < 128; i++)
-//  {
-//    Serial.print(map(pixels[i], 0, 128, 0, 9));
-//    Serial.print("");
-//    //Serial.printf("%d ", pixels[i] / 20 );
-//  }
+  for (int i = 1; i < 128; i++)
+  {
+    Serial.print(map(pixels[i], 0, 200, 0, 9));
+    Serial.print("");
+    //Serial.printf("%d ", pixels[i] / 20 );
+  }
 //  // Serial.printf("%d\t%d\n", mini, maxi );
 //  Serial.println("");
   
