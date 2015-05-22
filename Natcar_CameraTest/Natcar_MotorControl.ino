@@ -1,5 +1,5 @@
-#define MINSPEED 35
-#define MAXSPEED 65
+#define MINSPEED 40
+#define MAXSPEED 70
 
 int speedVal( int error )
 {
