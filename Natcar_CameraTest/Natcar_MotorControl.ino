@@ -1,11 +1,10 @@
-#define MINSPEED 40
-#define MAXSPEED 70
+#define MINSPEED 35
+#define MAXSPEED 55
 
-int speedVal( int error )
+int speedVal( float error )
 {
-  int absError = error;
-  if (absError < 0)
-    absError *= -1;
-    
-  return map(absError, 40, 0, MINSPEED, MAXSPEED);
+  if (error > 50) {
+    return 0;
+  }
+  return constrain(MINSPEED + (MAXSPEED - MINSPEED)*(1-((error/40)*(error/40))), MINSPEED, MAXSPEED);
 }

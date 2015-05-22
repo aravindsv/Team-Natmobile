@@ -26,12 +26,15 @@ int mini = 1000;
 int maxi = 0;
 int pixels[128 / SKIPVAL];
 int slopes[128 / SKIPVAL];
+int times[128 / SKIPVAL];
 
 const int NUM_SAMPLES = 10;
 int PREV_SAMPLES[NUM_SAMPLES];
 int curs = 0;
 
 Servo ourServo;
+
+int prevTime = 0;
 
 void setup()
 {
@@ -119,6 +122,11 @@ void displayView(int startIndex, int endIndex, int midIndex)
   Serial.print("]");
 }
 
+void testPrints()
+{
+  
+}
+
 void setServo(int error)
 {
   ourServo.write(SERVO_CENTER-error);
@@ -126,6 +134,7 @@ void setServo(int error)
 
 void loop()
 {
+  //Serial.println(millis());
   //Serial.println(millis());
   digitalWrite(SI, HIGH);
   digitalWrite(CLK, HIGH);
@@ -145,12 +154,12 @@ void loop()
 //    if (pixels[i] < mini)
 //      mini = pixels[i];
 //  }
-  for (int i = 1; i < 128; i++)
-  {
-    Serial.print(map(pixels[i], 0, 200, 0, 9));
-    Serial.print("");
-    //Serial.printf("%d ", pixels[i] / 20 );
-  }
+//  for (int i = 1; i < 128; i++)
+//  {
+//    Serial.print(map(pixels[i], 0, 200, 0, 9));
+//    Serial.print("");
+//    //Serial.printf("%d ", pixels[i] / 20 );
+//  }
 //  // Serial.printf("%d\t%d\n", mini, maxi );
 //  Serial.println("");
   
@@ -164,7 +173,7 @@ void loop()
 //  }
   calcSecant(pixels);
 
-  Serial.println();
+  //Serial.println();
   int startLine = indexOfGreatest(slopes);
   int endLine = indexOfLeast(slopes);
   int midLine = (startLine + endLine)/2;
@@ -180,13 +189,13 @@ void loop()
   
   if ( endLine > startLine && endLine - startLine < ERROR_SIZE )
   {
-    displayView(startLine, endLine, midLine);
+    //displayView(startLine, endLine, midLine);
     e = rawError(midLine);
     err = PID(midLine);
     sp = speedVal(e);
     analogWrite(motor1, sp);
     int angleDiff = map(err, -40, 40, -SERVO_RANGE, SERVO_RANGE);
-    Serial.printf( " err: %d, ang: %d, sp: %d", err, angleDiff, sp);
+    //Serial.printf( " err: %d, ang: %d, sp: %d", err, angleDiff, sp);
     PREV_SAMPLES[curs] = angleDiff;
     curs = (curs + 1) % NUM_SAMPLES;
     ourServo.write(SERVO_CENTER - angleDiff);
@@ -202,10 +211,10 @@ void loop()
     }
     int angleDiff = angleDiffSum / NUM_SAMPLES;
     ourServo.write(SERVO_CENTER - angleDiff);
-    Serial.printf( "guessed error: %d", angleDiff);
-    Serial.println();
+    //Serial.printf( "guessed error: %d", angleDiff);
+    //Serial.println();
   }
-  //Serial.println(millis());
+//  //Serial.println(millis());
 //  printValues();
 
   Serial.printf("\n\n");
