@@ -1,0 +1,48 @@
+
+// required arrays. 
+int? float? input[128]
+float filter[128] // TODO check if this has to be larger in any way. 
+smoothed_input[128] // initialized to all 0s.
+// consider using constants for the size, instead of 128, in the case that we want to reduce running time. 
+
+// getting the input. 
+// consider getting less than 128. This would significantly lower our time. 
+
+// this is so that input goes from -64 to 63.
+scaled_index(int i): 
+	if ( i >= -64 && i <= 63 )
+		return i + 64
+	return -1
+
+
+// simplistic filter that can be used as a test if gaussian doesn't work. 
+create box filter ( int sigma ):
+	for i in (-64, 63): 
+		if ( i < -sigma || i > sigma )
+			filter[scaled_index(i) = 0;
+		else
+			filter[scaled_index(i)] = 1; 
+			
+// intermediate filter that could work. mostly used as a test though. 
+create expotnential filter ( int sigma ): // currently sigma doesn't actually do anything
+	for i in (-64, 63):
+		int abs = i; 
+		if ( i < 0 )
+			abs = -i; (get absolute value)
+		filter[scaled_index(i)] = (1/2)^abs;
+
+// notice that for any i > 3*sigma, the value may be completely negligible. 
+// we can possibly save on time, in that sense. 
+create Gaussian filter ( int sigma ): 
+	for i in (-64, 63): 
+		filter[scaled_index(i)] = e^(-i^2/(2*sigma))/(sigma*sqrt(2*pi))
+
+// essentially does a convolution
+// returns an array that has undergone a lowpass filter. 
+smoothing(input, filter)
+	for i in (-64, 63): 
+		for k in (-64, 63): 
+			if ( scaled_index(i-k) > 0 )
+				smoothed_input[scaled_index(i)] += input[scaled_index(k)] * filter[scaled_index(i-k)]
+				
+		
